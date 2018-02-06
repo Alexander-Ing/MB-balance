@@ -3,7 +3,7 @@
 #include <time.h>
 #define DEST 1 //DO NOT CHANGE
 #define K 4
-int destNumber = 2; //# of middlebox
+int destNumber = 3; //# of middlebox
 int globalStartNumber = 1; //# of connections
 //Starting location test
 int currentLayer; //which layer, PM = 1, Edge = 2, Agg = 3, Core = 4
@@ -467,7 +467,7 @@ int randomNode(){
 //random middlebox placement
 void randomLayer(int numberOfMiddleBoxes, int destArray[][((K*K*K)/4)+1]){
 	int middleBox = numberOfMiddleBoxes;
-	//srand(time(NULL));
+	srand(time(NULL));
 	int layer = 0;
 	int index = 0;
 	int tempCounter = 1;
@@ -679,21 +679,19 @@ void destPathFinder(int FDlayer, int FDnode, int destArray[][((K*K*K)/4)+1]){
 // 	printf("number of mid boxs = %d\n", destChecker -1);
 // }
 
-void simCreate(int startNode, int endNode){
+void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1]){
 	srand(time(NULL));
 	int layerIndex = 4; 
 	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
 	int startNumber = 1; //number of start points
 	int randomFlag = 0; // set to 1 if want start and end points random
-	int fullMiddleboxArray[layerIndex+1][nodeIndex]; //array of all middlebox instances and types
-	int destinationArray[layerIndex+1][nodeIndex]; //single path to be used
-	int to, tp;
-	for(to = 1; to < layerIndex+1; to++){
-		for(tp = 1; tp < nodeIndex; tp++){
-			destinationArray[to][tp] = 0;
-			fullMiddleboxArray[to][tp] = 0;
-		}
-	}
+	//int destinationArray[layerIndex+1][nodeIndex]; //single path to be used
+	// int to, tp;
+	// for(to = 1; to < layerIndex+1; to++){
+	// 	for(tp = 1; tp < nodeIndex; tp++){
+	// 		destinationArray[to][tp] = 0;
+	// 	}
+	// }
 	
 	int startArray[startNumber*2], startFill;
 	for(startFill = 0; startFill < startNumber*2; startFill++){
@@ -793,7 +791,6 @@ void simCreate(int startNode, int endNode){
 
 //--------reset flags and run random alg-------------------------
 
-	randomLayer(destNumber, destinationArray); //random mid box
 	printf("************MAIN RUNNING******************************************\n");
 	for(u = 0; u < startNumber*2; u++){
 		currentLayer = startArray[u];
@@ -841,11 +838,11 @@ void simCreate(int startNode, int endNode){
 	DestPod = 0;
 	hopCounter = 0;
 	totalHops = 0;
-	for(to = 1; to < layerIndex+1; to++){
-		for(tp = 1; tp < nodeIndex; tp++){
-			destinationArray[to][tp] = 0;
-		}
-	}
+	// for(to = 1; to < layerIndex+1; to++){
+	// 	for(tp = 1; tp < nodeIndex; tp++){
+	// 		destinationArray[to][tp] = 0;
+	// 	}
+	// }
 	startCounter = 0; 
 	endCounter = 0;
 	//-------------------------------GREEDY------------------------------
@@ -912,6 +909,16 @@ int main(){
  6. feed created arrays from main to simCreate 1 at a time (loop through)
  7. create algorithms 
  **/
+	int layerIndex = 4; 
+	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
+	int destinationArrayMain[layerIndex+1][nodeIndex]; //single path to be used
+	int to, tp;
+	for(to = 1; to < layerIndex+1; to++){
+		for(tp = 1; tp < nodeIndex; tp++){
+			destinationArrayMain[to][tp] = 0;
+		}
+	}
+	randomLayer(destNumber, destinationArrayMain); //random mid box
 	int startNode[globalStartNumber], endNode[globalStartNumber], i;
 	for(i = 0; i < globalStartNumber; i++){
 		srand(time(NULL)+i);
@@ -920,7 +927,7 @@ int main(){
 		endNode[i] = randomNode();
 		printf("endNode: %d \n", endNode[i]);
 
-		simCreate(startNode[i], endNode[i]); //running simCreate
+		simCreate(startNode[i], endNode[i], destinationArrayMain); //running simCreate
 	}
 	printf("total hops: %d \n", finalHops);
 	return 0;
