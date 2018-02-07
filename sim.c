@@ -3,7 +3,9 @@
 #include <time.h>
 #define DEST 1 //DO NOT CHANGE
 #define K 4
-int destNumber = 3; //# of middlebox
+int destNumber = 3; //# of middlebox types
+int instanceNumber = 2; // # of mb instances per type
+int mbCap = 1; // amount of capacity for mbs
 int globalStartNumber = 1; //# of connections
 //Starting location test
 int currentLayer; //which layer, PM = 1, Edge = 2, Agg = 3, Core = 4
@@ -466,42 +468,49 @@ int randomNode(){
 
 //random middlebox placement
 void randomLayer(int numberOfMiddleBoxes, int destArray[][((K*K*K)/4)+1]){
-	int middleBox = numberOfMiddleBoxes;
+	int middleBox;
 	srand(time(NULL));
-	int layer = 0;
-	int index = 0;
-	int tempCounter = 1;
-	do{
-		layer = rand() % ((4+1) - 2) + 2;
-		switch(layer)
-		{
-			case 2:
-			{
-				index = rand() % ((((K * K)/2) + 1) - 1) + 1; // edge
-				break;
-			}
-			
-			case 3:
-			{
-				index = rand() % ((((K * K)/2) + 1) - 1) + 1;
-				break;
-			}
-			
-			case 4:
-			{
-				index = rand() % ((((K * K)/4) + 1) - 1) + 1;
-				break;
-			}
-		}
-		//printf("middlebox: l:%d, n: %d order: %d \n", layer, index, tempCounter);
-		if(destArray[layer][index] == 0){
-			destArray[layer][index] = tempCounter;
-			tempCounter++;
-			middleBox--;
-		} 
+	int layer;
+	int index;
+	int tempCounter;
+	int i;
 
-	}while(middleBox != 0);
+	for(i = 0; i < instanceNumber; i++){
+		layer = 0;
+		index = 0;
+		tempCounter = 1;
+		middleBox = numberOfMiddleBoxes;
+		do{
+			layer = rand() % ((4+1) - 2) + 2;
+			switch(layer)
+			{
+				case 2:
+				{
+					index = rand() % ((((K * K)/2) + 1) - 1) + 1; // edge
+					break;
+				}
+				
+				case 3:
+				{
+					index = rand() % ((((K * K)/2) + 1) - 1) + 1;
+					break;
+				}
+				
+				case 4:
+				{
+					index = rand() % ((((K * K)/4) + 1) - 1) + 1;
+					break;
+				}
+			}
+			//printf("middlebox: l:%d, n: %d order: %d \n", layer, index, tempCounter);
+			if(destArray[layer][index] == 0){
+				destArray[layer][index] = tempCounter;
+				tempCounter++;
+				middleBox--;
+			} 
 
+		}while(middleBox != 0);
+	}
 }
 
 void destPathFinder(int FDlayer, int FDnode, int destArray[][((K*K*K)/4)+1]){
@@ -897,6 +906,32 @@ void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1
  * and feed the resulting 'destArray' into main
  * loop untill all vms have been served
  **/
+void printDest(int destinationArray[5][((K*K*K)/4)+1]){
+	int i, j;
+	for(i = 1; i < 5; i++){
+		for(j = 0; j < ((K*K*K)/4)+1; j++){
+			if(destinationArray[i][j] >= 0 && destinationArray[i][j] <= destNumber){
+				printf("%d ", destinationArray[i][j]);
+			}	
+		}
+		printf("\n");
+	}
+}
+
+int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumber], int destinationArray[5][((K*K*K)/4)+1]){
+	/**
+	 * single greedy algorithm:
+	 * iterate through every vm pair
+	 * find mbs with available capacity for every iteration in policy
+	 * calculate cost for every path
+	 * choose path with lowest cost
+	 * move to next vm pair 
+	 **/
+	int tempDestinationArray[5][((K*K*K)/4)+1];
+	
+
+	return 0;
+}
 
 int main(){
 /**
@@ -913,12 +948,15 @@ int main(){
 	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
 	int destinationArrayMain[layerIndex+1][nodeIndex]; //single path to be used
 	int to, tp;
+	//init destination array
 	for(to = 1; to < layerIndex+1; to++){
 		for(tp = 1; tp < nodeIndex; tp++){
 			destinationArrayMain[to][tp] = 0;
 		}
 	}
-	randomLayer(destNumber, destinationArrayMain); //random mid box
+	randomLayer(destNumber, destinationArrayMain); //random mid box allocation!!
+	//new algorithms after random allocation
+	
 	int startNode[globalStartNumber], endNode[globalStartNumber], i;
 	for(i = 0; i < globalStartNumber; i++){
 		srand(time(NULL)+i);
@@ -926,9 +964,12 @@ int main(){
 		printf("startNode: %d \n", startNode[i]);
 		endNode[i] = randomNode();
 		printf("endNode: %d \n", endNode[i]);
+	}
 
+	for(i = 0; i < globalStartNumber; i++){
 		simCreate(startNode[i], endNode[i], destinationArrayMain); //running simCreate
 	}
 	printf("total hops: %d \n", finalHops);
+	printDest(destinationArrayMain);
 	return 0;
 }
