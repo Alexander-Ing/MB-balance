@@ -950,6 +950,7 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 						destMapNode[mbCounter - 1][instanceCounter - 1] = j;
 						capArray[mbCounter - 1][instanceCounter - 1] = 0;
 						instanceCounter++;
+
 					}
 				}
 			}
@@ -959,24 +960,14 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 		mbCounter++;
 	}
 	
-	// for(i = 0; i < destNumber; i++){
-	// 	for(j = 0; j < instanceNumber; j++){
-	// 		printf("MB (%d, %d) ", i, j);
-	// 	}
-	// 	printf("\n");
-	// }
-
 	//start single Greedy
-	int k;
 	for(i = 0; i < instanceNumber; i++){
 		for(j = 0; j < destNumber; j++){
 			printf("MB (%d, %d) ", j, i);
-			
 		}
 		printf("\n");
 	}
 
-	
 	//for every instance try every mb
 	int startArrayCounter, endArrayCounter = 0;
 	mbCounter = 0;
