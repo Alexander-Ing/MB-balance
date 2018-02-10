@@ -6,7 +6,7 @@
 int destNumber = 3; //# of middlebox types
 int instanceNumber = 2; // # of mb instances per type
 int mbCap = 1; // amount of capacity for mbs
-int globalStartNumber = 1; //# of connections
+int globalStartNumber = 2; //# of connections
 //Starting location test
 int currentLayer; //which layer, PM = 1, Edge = 2, Agg = 3, Core = 4
 int start; //node # in layer
@@ -927,23 +927,70 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 	 * choose path with lowest cost
 	 * move to next vm pair 
 	 **/
-	int tempDestinationArray[5][((K*K*K)/4)+1];
+	int destMapLayer[destNumber][instanceNumber];
+	int destMapNode[destNumber][instanceNumber];
+	int capArray[destNumber][instanceNumber];
+	int tempDestinationArray[5][((K*K*K)/4)+1], i , j;
+	int layerIndex = 4; 
+	int nodeIndex = ((K*K*K)/4)+1;
+	for(i = 1; i < layerIndex+1; i++){
+		for(j = 1; j < nodeIndex; j++){
+			tempDestinationArray[i][j] = 0;
+		}
+	}
 	
+	int instanceCounter = 1;
+	int mbCounter = 1;
+	while(mbCounter <= destNumber){
+		while(instanceCounter <= instanceNumber){
+			for(i = 1; i < layerIndex+1; i++){
+				for(j = 1; j < nodeIndex; j++){
+					if(destinationArray[i][j] == mbCounter){
+						destMapLayer[mbCounter - 1][instanceCounter - 1] = i;
+						destMapNode[mbCounter - 1][instanceCounter - 1] = j;
+						capArray[mbCounter - 1][instanceCounter - 1] = 0;
+						instanceCounter++;
+					}
+				}
+			}
+			instanceCounter++;
+		}
+		instanceCounter = 1;
+		mbCounter++;
+	}
+	
+	// for(i = 0; i < destNumber; i++){
+	// 	for(j = 0; j < instanceNumber; j++){
+	// 		printf("MB (%d, %d) ", i, j);
+	// 	}
+	// 	printf("\n");
+	// }
+
+	//start single Greedy
+	int k;
+	for(i = 0; i < instanceNumber; i++){
+		for(j = 0; j < destNumber; j++){
+			printf("MB (%d, %d) ", j, i);
+			
+		}
+		printf("\n");
+	}
+
+	
+	//for every instance try every mb
+	int startArrayCounter, endArrayCounter = 0;
+	mbCounter = 0;
+	instanceCounter = 0;
+
+	for(startArrayCounter = 0; startArrayCounter < globalStartNumber; startArrayCounter++){
+		
+
+	}
 
 	return 0;
 }
 
 int main(){
-/**
- *TO DO LIST
- 1. modify simCreate to accept 1 com pair
- 2. modify simCreate to accept 1 policy chain (destArray)
- 3. create communication pair array in main
- 4. create mid box placement array in main
- 5. create mid box capacity array in main
- 6. feed created arrays from main to simCreate 1 at a time (loop through)
- 7. create algorithms 
- **/
 	int layerIndex = 4; 
 	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
 	int destinationArrayMain[layerIndex+1][nodeIndex]; //single path to be used
@@ -955,7 +1002,6 @@ int main(){
 		}
 	}
 	randomLayer(destNumber, destinationArrayMain); //random mid box allocation!!
-	//new algorithms after random allocation
 	
 	int startNode[globalStartNumber], endNode[globalStartNumber], i;
 	for(i = 0; i < globalStartNumber; i++){
@@ -965,11 +1011,13 @@ int main(){
 		endNode[i] = randomNode();
 		printf("endNode: %d \n", endNode[i]);
 	}
+	//new algorithms after random allocation of MBs and VMs
 
 	for(i = 0; i < globalStartNumber; i++){
 		simCreate(startNode[i], endNode[i], destinationArrayMain); //running simCreate
 	}
 	printf("total hops: %d \n", finalHops);
 	printDest(destinationArrayMain);
+	int x = singleGreedy(startNode, endNode, destinationArrayMain);
 	return 0;
 }
