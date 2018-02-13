@@ -950,7 +950,9 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 	int startArrayCounter, endArrayCounter = 0;
 	mbCounter = 0;
 	instanceCounter = 0;
-	int hops;
+	int hops = 0;
+	int tempHops = 0;
+	int totalHopsReturn = 0;
 
 	for(startArrayCounter = 0; startArrayCounter < globalStartNumber; startArrayCounter++){
 		for (i = 0; i < destNumber; i++){
@@ -962,7 +964,6 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 		}
 		//check if mb reach cap here
 		hops = simCreate(startArray[startArrayCounter], endArray[startArrayCounter], tempDestinationArray);
-		
 		for(i = 0; i < layerIndex+1; i++){
 			for(j = 0; j < nodeIndex; j++){
 				tempDestinationArray[i][j] = 0;
@@ -978,8 +979,10 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 				}
 				
 				//check if mb reach cap here
-				hops = simCreate(startArray[startArrayCounter], endArray[startArrayCounter], tempDestinationArray);
-				printf("%d", hops);
+				tempHops = simCreate(startArray[startArrayCounter], endArray[startArrayCounter], tempDestinationArray);
+				if(tempHops < hops){
+					hops = tempHops;
+				}
 				
 				for(i = 0; i < layerIndex+1; i++){
 					for(j = 0; j < nodeIndex; j++){
@@ -988,8 +991,9 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 				}
 			}
 		}
+		totalHopsReturn = totalHopsReturn + hops;
 	}
-	return 0;
+	return totalHopsReturn;
 }
 
 int main(){
