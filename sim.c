@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "math.h"
 #define DEST 1 //DO NOT CHANGE
 #define K 4
 int destNumber = 3; //# of middlebox types
 int instanceNumber = 2; // # of mb instances per type
-int mbCap = 1; // amount of capacity for mbs
+int mbCap = 2; // amount of capacity for mbs
 int globalStartNumber = 2; //# of connections
 //Starting location test
 int currentLayer; //which layer, PM = 1, Edge = 2, Agg = 3, Core = 4
@@ -688,7 +689,7 @@ void destPathFinder(int FDlayer, int FDnode, int destArray[][((K*K*K)/4)+1]){
 // 	printf("number of mid boxs = %d\n", destChecker -1);
 // }
 
-void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1]){
+int simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1]){
 	srand(time(NULL));
 	int layerIndex = 4; 
 	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
@@ -800,7 +801,7 @@ void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1
 
 //--------reset flags and run random alg-------------------------
 
-	printf("************MAIN RUNNING******************************************\n");
+	printf("******************************************************\n");
 	for(u = 0; u < startNumber*2; u++){
 		currentLayer = startArray[u];
 		u++;
@@ -836,8 +837,8 @@ void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1
 	printf("For K = %d\n", K);
 	printf("Number of middle boxs: %d\n", destNumber);
 	printf("Number of connections: %d\n", startNumber);
-	printf("Number of hops (RANDOM): %d\n", totalHops);
-	int totalHopsRandom = totalHops;
+	printf("Number of hops: %d\n", totalHops);
+	int totalHopsInner = totalHops;
 	finalHops += totalHops;
 	DestAggFlag = 0;
 	DestEdgeFlag = 0;
@@ -854,49 +855,7 @@ void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1
 	// }
 	startCounter = 0; 
 	endCounter = 0;
-	//-------------------------------GREEDY------------------------------
-	// greedyAlg(startArray, endArray, destinationArray);
-	
-	// printf("************MAIN RUNNING (GREEDY)******************************************\n");
-	// for(u = 0; u < startNumber*2; u++){
-	// 	currentLayer = startArray[u];
-	// 	u++;
-	// 	start = startArray[u];
-	// 	destPathFinder(endArray[endCounter], endArray[endCounter+1], destinationArray);
-	// 	endCounter = endCounter+2;
-	// 	printf("--> hops: %d\n", hopCounter);
-	// 	hopCounter = 0;	
-	// }
-
-	// printf("******************Complete**********************\n");
-	//printing out the middle boxes
-	// destPrintOutCounter = 1;
-	// while(destPrintOutCounter <= destNumber){
-	// 	for(too = 1; too < layerIndex+1; too++){
-	// 		for(tpp = 1; tpp < nodeIndex; tpp++){
-	// 			if(destinationArray[too][tpp] == destPrintOutCounter){
-	// 				switch(too){
-	// 					case 2: //edge
-	// 						printf("middlebox test #%d: e%d \n", destinationArray[too][tpp], tpp);
-	// 						break;
-	// 					case 3: //agg
-	// 						printf("middlebox test #%d: a%d \n", destinationArray[too][tpp], tpp);
-	// 						break;
-	// 					case 4: //core
-	// 						printf("middlebox test #%d: c%d \n", destinationArray[too][tpp], tpp);
-	// 						break;
-	// 				}
-	// 				destPrintOutCounter++;
-	// 			}
-	// 		}
-	// 	}
-	// }
-	
-	// printf("For K = %d\n", K);
-	// printf("Number of middle boxs: %d\n", destNumber);
-	// printf("Number of connection pairs: %d\n", startNumber);
-	// printf("Number of hops (GREEDY): %d\n", totalHops);
-	// printf("Number of hops(RANDOM): %d\n", totalHopsRandom);
+	return totalHopsInner;
 }
 
 
@@ -906,6 +865,38 @@ void simCreate(int startNode, int endNode, int destinationArray[5][((K*K*K)/4)+1
  * and feed the resulting 'destArray' into main
  * loop untill all vms have been served
  **/
+int add(int array[], int range, int size){
+  int index; 
+  int carry; 
+  
+  carry = 0; 
+  array[0] ++;
+
+  for (index = 0; index < size; index ++){
+    if (carry){
+      array[index]++; 
+      carry --; 
+    }
+    
+    if (array[index] > range){
+      carry ++; 
+      array[index] = 1; 
+    }
+  }
+  
+  return carry; 
+}
+
+void print_array(int array[], int size){
+  int index; 
+  
+  for (index = 0; index < size; index ++){
+    printf("%d ", array[index]);
+  }
+  
+  printf("\n");
+}
+
 void printDest(int destinationArray[5][((K*K*K)/4)+1]){
 	int i, j;
 	for(i = 1; i < 5; i++){
@@ -919,22 +910,15 @@ void printDest(int destinationArray[5][((K*K*K)/4)+1]){
 }
 
 int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumber], int destinationArray[5][((K*K*K)/4)+1]){
-	/**
-	 * single greedy algorithm:
-	 * iterate through every vm pair
-	 * find mbs with available capacity for every iteration in policy
-	 * calculate cost for every path
-	 * choose path with lowest cost
-	 * move to next vm pair 
-	 **/
 	int destMapLayer[destNumber][instanceNumber];
 	int destMapNode[destNumber][instanceNumber];
 	int capArray[destNumber][instanceNumber];
 	int tempDestinationArray[5][((K*K*K)/4)+1], i , j;
+	int mbArray[destNumber];
 	int layerIndex = 4; 
 	int nodeIndex = ((K*K*K)/4)+1;
-	for(i = 1; i < layerIndex+1; i++){
-		for(j = 1; j < nodeIndex; j++){
+	for(i = 0; i < layerIndex+1; i++){
+		for(j = 0; j < nodeIndex; j++){
 			tempDestinationArray[i][j] = 0;
 		}
 	}
@@ -950,7 +934,6 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 						destMapNode[mbCounter - 1][instanceCounter - 1] = j;
 						capArray[mbCounter - 1][instanceCounter - 1] = 0;
 						instanceCounter++;
-
 					}
 				}
 			}
@@ -959,25 +942,53 @@ int singleGreedy(int startArray[globalStartNumber], int endArray[globalStartNumb
 		instanceCounter = 1;
 		mbCounter++;
 	}
-	
-	//start single Greedy
-	for(i = 0; i < instanceNumber; i++){
-		for(j = 0; j < destNumber; j++){
-			printf("MB (%d, %d) ", j, i);
-		}
-		printf("\n");
-	}
 
+	int mb_combo[destNumber];
+	int carry;
+	
 	//for every instance try every mb
 	int startArrayCounter, endArrayCounter = 0;
 	mbCounter = 0;
 	instanceCounter = 0;
+	int hops;
 
 	for(startArrayCounter = 0; startArrayCounter < globalStartNumber; startArrayCounter++){
+		for (i = 0; i < destNumber; i++){
+			mb_combo[i] = 1; 
+		}
+
+		for(i = 1; i < destNumber+1; i++){
+			tempDestinationArray[destMapLayer[i - 1][0]][destMapNode[i - 1][0]] = i;
+		}
+		//check if mb reach cap here
+		hops = simCreate(startArray[startArrayCounter], endArray[startArrayCounter], tempDestinationArray);
 		
-
+		for(i = 0; i < layerIndex+1; i++){
+			for(j = 0; j < nodeIndex; j++){
+				tempDestinationArray[i][j] = 0;
+			}
+		}
+		while (1){
+			carry = add(mb_combo, instanceNumber, destNumber);
+			if (carry){
+				break;
+			} else {
+				for(i = 0; i < destNumber; i++){
+					tempDestinationArray[destMapLayer[i][mb_combo[i] - 1]][destMapNode[i][mb_combo[i] - 1]] = i + 1;
+				}
+				
+				//check if mb reach cap here
+				hops = simCreate(startArray[startArrayCounter], endArray[startArrayCounter], tempDestinationArray);
+				printf("%d", hops);
+				
+				for(i = 0; i < layerIndex+1; i++){
+					for(j = 0; j < nodeIndex; j++){
+						tempDestinationArray[i][j] = 0;
+					}
+				}
+			}
+		}
 	}
-
 	return 0;
 }
 
@@ -985,10 +996,10 @@ int main(){
 	int layerIndex = 4; 
 	int nodeIndex = ((K*K*K)/4)+1; // max nodes in a layer +1
 	int destinationArrayMain[layerIndex+1][nodeIndex]; //single path to be used
-	int to, tp;
+	int to, tp, hops;
 	//init destination array
-	for(to = 1; to < layerIndex+1; to++){
-		for(tp = 1; tp < nodeIndex; tp++){
+	for(to = 0; to < layerIndex+1; to++){
+		for(tp = 0; tp < nodeIndex; tp++){
 			destinationArrayMain[to][tp] = 0;
 		}
 	}
@@ -1003,12 +1014,14 @@ int main(){
 		printf("endNode: %d \n", endNode[i]);
 	}
 	//new algorithms after random allocation of MBs and VMs
-
-	for(i = 0; i < globalStartNumber; i++){
-		simCreate(startNode[i], endNode[i], destinationArrayMain); //running simCreate
-	}
-	printf("total hops: %d \n", finalHops);
+	// for(i = 0; i < globalStartNumber; i++){
+	// 	hops = simCreate(startNode[i], endNode[i], destinationArrayMain); //running simCreate
+	// }
+	// printf("total hops not right: %d \n", hops);
 	printDest(destinationArrayMain);
+	printf("SINGLE GREEDY RUNNING \n");
 	int x = singleGreedy(startNode, endNode, destinationArrayMain);
+	printf("total hops single Greedy: %d \n", x);
+	
 	return 0;
 }
